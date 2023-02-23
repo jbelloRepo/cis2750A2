@@ -17,22 +17,26 @@ mylib.o:  mol.c mol.h
 libmol.so: mylib.o
 	$(CC) mylib.o -shared -o libmol.so $(LIBS)
 
-# Generates python interface with C-code
+# 1. Generates python interface with C-code
 molecule_python: 
 	swig3.0 -python molecule.i
 
-# Compiles *_wrap.c file 
+# 2. Compiles *_wrap.c file 
 molecule_wrap.o: molecule_wrap.c
-	$(CC) $(FLAGS) -c molecule_wrap.c -I/usr/include/python2.7  -o molecule_wrap.o 
+	$(CC) $(FLAGS) -c -fPIC -I/usr/include/python3.7m molecule_wrap.c -o molecule_wrap.o
 
+# 3. 
 _molecule.so: libmol.so molecule_wrap.o
-	$(CC) $(FLAGS) -shared libmol.so molecule_wrap.o -o _molecule.so
+	$(CC) $(FLAGS) -dynamiclib -shared molecule_wrap.o -o _molecule.so -L. -lmol -L/usr/lib/python3.7/config-3.7m-x86_64-linux-gnu 
+
+libpath:
+	export LD_LIBRARY_PATH=`pwd`
 
 # For testing 
 main.o:  main.c mol.h
 	$(CC) $(FLAGS) -c main.c -o main.o 
 
-myprog:  molecule_python main.o libmol.so _molecule.so
+myprog: molecule_python main.o _molecule.so libmol.so libpath
 	$(CC) main.o -L. -l mol -o myprog $(LIBS)
 
 
