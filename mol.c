@@ -10,7 +10,7 @@ int compare_atom_ptr(const void *a, const void *b);
 int compare_bond_ptr(const void *a, const void *b);
 
 /******************************************
-		Functions for the atom
+		Functions for the ATOM
 ******************************************/
 
 void atomset(atom *atom, char element[3], double *x, double *y, double *z) // setter for atom
@@ -76,7 +76,7 @@ molecule *molmalloc(unsigned short atom_max, unsigned short bond_max) // dym. al
 //! Add NULL for malloc if there is no space FIXME: Add NUL
 void molappend_atom(molecule *molecule, atom *atom) // FIXME: after re-allocating you have to reassign the atom pointer, same for the bonds
 {
-	struct atom *a1, **a2; //! TEMP VARS
+	struct atom *a1, **a2;
 
 	if (molecule->atom_no == molecule->atom_max) //* check atom_no & atom_max before appending to array
 	{
@@ -103,9 +103,10 @@ void molappend_atom(molecule *molecule, atom *atom) // FIXME: after re-allocatin
 		printf("Address pointed to by {temp a1} in header file (new memory address #REALLOC): %p\n", (void *)a1); //! error checking
 #endif
 
-		if (a1 == NULL) //! add more statements or return 0 --CHECK THIS
+		if (a1 == NULL) // exit if realloc fails
 		{
 			exit(EXIT_FAILURE);
+
 #ifdef DEBUG_ON
 			printf("No additional heap for atoms *atom \n");
 #endif
@@ -113,7 +114,6 @@ void molappend_atom(molecule *molecule, atom *atom) // FIXME: after re-allocatin
 
 		else
 		{
-
 			molecule->atoms = a1;
 
 #ifdef DEBUG_ON
@@ -128,7 +128,7 @@ void molappend_atom(molecule *molecule, atom *atom) // FIXME: after re-allocatin
 		printf("Address pointed to by {molecule->atom_ptr} (old memory address): %p\n", (void *)molecule->atom_ptrs); //! error checking
 		printf("Address pointed to by {temp a2} in header file (new memory address #REALLOC) : %p\n", (void *)a2);	  //! error checking
 #endif
-		if (a2 == NULL) //! add more statements or return 0 --CHECK THIS
+		if (a2 == NULL) // exit if realloc fails
 		{
 			exit(EXIT_FAILURE);
 
@@ -147,7 +147,7 @@ void molappend_atom(molecule *molecule, atom *atom) // FIXME: after re-allocatin
 
 		for (int i = 0; i < molecule->atom_no; i++)
 		{
-			molecule->atom_ptrs[i] = &molecule->atoms[i];
+			molecule->atom_ptrs[i] = &molecule->atoms[i]; // each pointer points to their respective indicies
 		}
 
 #ifdef DEBUG_ON
@@ -194,27 +194,42 @@ void molappend_atom(molecule *molecule, atom *atom) // FIXME: after re-allocatin
 /******************************************
 		Functions for the bond
 *******************************************/
-
-void bondset(bond *bond, atom *a1, atom *a2, unsigned char epairs) //* setter for the bond variable
+//! UPDATED FOR A2
+void bondset(bond *bond, unsigned short *a1, unsigned short *a2, atom **atoms, unsigned char *epairs) // setter for the bond variable
 {
-	bond->a1 = a1;
-	bond->a2 = a2;
+	bond->a1 = *(a1);
+	bond->a2 = *(a2);
+	bond->epairs = *(epairs);
+	bond->atoms = *(atoms);
 
-#ifdef DEBUG_ON
+#ifdef DEBUG_OFF
 	printf("\n==================================== [MOL.C] This is for bondset() =======================================\n");
-	printf("Address pointed to by bond->a1 in the header file: %p\n", (void *)bond->a1); //! error checking
-	printf("Address pointed to by bond->a2 in the header file: %p\n", (void *)bond->a2); //! error checking
+	printf("The value of a1, a2 and eparis is:  %d, %d, %d\n", bond->a1, bond->a2, bond->epairs);
+	printf("The first atom in the atom array is:  %s\n", bond->atoms[0].element);
+	printf("The second atom in the atom array is: %s\n", bond->atoms[1].element);
+	printf("The third atom in the atom array is:  %s\n", bond->atoms[2].element);
+	// printf("Address pointed to by bond->a2 in the header file: %p\n", (void *)bond->a2);
 #endif
 
-	bond->epairs = epairs;
+	compute_coords(bond); // function call to set other struct members
+
+	// printf("The values are %p \n", (void *)(bond->atoms));
+}
+//! UPDATED FOR A2
+void bondget(bond *bond, unsigned short *a1, unsigned short *a2, atom **atoms, unsigned char *epairs) // getter for the bond variable
+{
+	*a1 = (bond->a1);
+	*a2 = (bond->a2);
+	*atoms = bond->atoms;
+	*epairs = (bond->epairs);
 }
 
-void bondget(bond *bond, atom **a1, atom **a2, unsigned char *epairs)
-{
-	*a1 = (bond->a1); //*a1 yields pointer to atom; (bond->a1) returns pointer to atom
-	*a2 = (bond->a2);
-	*epairs = bond->epairs;
-}
+// void bondget(bond *bond, atom **a1, atom **a2, unsigned char *epairs)
+// {
+// 	*a1 = (bond->a1); //*a1 yields pointer to atom; (bond->a1) returns pointer to atom
+// 	*a2 = (bond->a2);
+// 	*epairs = bond->epairs;
+// }
 
 void molappend_bond(molecule *molecule, bond *bond) // appends the bonds
 {													//! bond_no initially set to 0
@@ -333,6 +348,9 @@ void molappend_bond(molecule *molecule, bond *bond) // appends the bonds
 		molecule->bond_ptrs[0] = &molecule->bonds[0]; //! CHECK THIS
 		molecule->bond_no += 1;
 
+		molecule->bonds[0].x1 = bond->x1;
+		molecule->bonds[0].y1 = bond->y1;
+
 #ifdef DEBUG_ON
 		printf("Address pointed to by molecule->bond_ptrs[0] in header file : %p\n", (void *)molecule->bond_ptrs[0]); //! error checking
 		printf("The value of bond_max is %d \n", molecule->bond_max);
@@ -372,11 +390,12 @@ int compare_bond_ptr(const void *a, const void *b)
 	double double_a, double_b;
 	bond *bond_a, *bond_b;
 
-	bond_a = *(bond **)(a);							// de-reference a to get the bond pointed to by the pointer
-	double_a = (bond_a->a1->z + bond_a->a2->z) / 2; // get the value pointed to by a (which is the z value)
+	//* FIXME:
+	bond_a = *(bond **)(a); // de-reference a to get the bond pointed to by the pointer
+	double_a = 0;			//(bond_a->a1->z + bond_a->a2->z) / 2; // get the value pointed to by a (which is the z value)
 
 	bond_b = *(bond **)(b);
-	double_b = (bond_b->a1->z + bond_b->a2->z) / 2;
+	double_b = 0; //(bond_b->a1->z + bond_b->a2->z) / 2;
 
 #ifdef DEBUG_
 	printf("The value of a is: %lf \n", double_a);
@@ -616,9 +635,44 @@ molecule *molcopy(molecule *src)
 		aBond.epairs = src->bonds[i].epairs;
 		aBond.a1 = src->bonds[i].a1;
 		aBond.a2 = src->bonds[i].a2;
+		//! Updated for A2
+		aBond.x1 = src->bonds[i].x1;
+		aBond.x2 = src->bonds[i].x2;
+		aBond.y1 = src->bonds[i].y1;
+		aBond.y2 = src->bonds[i].y2;
 
 		molappend_bond(moleCopy, &aBond); // append all bonds
 	}
-
 	return moleCopy;
+}
+
+//! Updated for A2
+void compute_coords(bond *bond)
+{
+
+#ifdef DEBUG_OFF
+	printf("\n==================================== [MOL.H] This is for compute_coords()-- BEFORE =======================================\n");
+	printf("The value of a1, a2 is: %d, %d\n", bond->a1, bond->a2);
+	printf("The value of x1, y1 is: %lf, %lf \n", bond->atoms[bond->a1].x, bond->atoms[bond->a1].y);
+	printf("The value of x2, y2 is: %lf, %lf \n", bond->atoms[bond->a2].x, bond->atoms[bond->a2].y);
+#endif
+
+	bond->x1 = bond->atoms[bond->a1].x;
+	bond->y1 = bond->atoms[bond->a1].y;
+	bond->x2 = bond->atoms[bond->a2].x;
+	bond->y2 = bond->atoms[bond->a2].y;
+	bond->z = (bond->atoms[bond->a1].z + bond->atoms[bond->a2].z) / 2;
+	bond->len = 0;
+	bond->dx = 0;
+	bond->dy = 0;
+
+#ifdef DEBUG_OFF
+	printf("\n==================================== [MOL.H] This is for compute_coords()-- AFTER =======================================\n");
+	printf("The value of a1, a2 is: %d, %d\n", bond->a1, bond->a2);
+	printf("The value of x1, y1 is: %lf, %lf \n", bond->atoms[bond->a1].x, bond->atoms[bond->a1].y);
+	printf("The value of x2, y2 is: %lf, %lf \n", bond->atoms[bond->a2].x, bond->atoms[bond->a2].y);
+	// printf("The value of x1, y1 is: %lf, %lf \n", bond->atoms[0].x, bond->atoms[0].y);
+	// printf("The value of x2, y2 is: %lf, %lf \n", bond->atoms[1].x, bond->atoms[1].y);
+	// printf("The value of x3, y3 is: %lf, %lf \n", bond->atoms[2].x, bond->atoms[2].y);
+#endif
 }
