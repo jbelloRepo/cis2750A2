@@ -332,6 +332,17 @@ void molappend_bond(molecule *molecule, bond *bond) // appends the bonds
 		molecule->bonds[molecule->bond_no].a2 = bond->a2;
 		molecule->bonds[molecule->bond_no].epairs = bond->epairs;
 		molecule->bond_ptrs[molecule->bond_no] = &molecule->bonds[molecule->bond_no]; //! CHECK THIS
+		//! Updated for A2
+		molecule->bonds[molecule->bond_no].atoms = bond->atoms;
+		molecule->bonds[molecule->bond_no].x1 = bond->x1;
+		molecule->bonds[molecule->bond_no].x2 = bond->x2;
+		molecule->bonds[molecule->bond_no].y1 = bond->y1;
+		molecule->bonds[molecule->bond_no].y2 = bond->y2;
+		molecule->bonds[molecule->bond_no].dx = bond->dx;
+		molecule->bonds[molecule->bond_no].dy = bond->dy;
+		molecule->bonds[molecule->bond_no].len = bond->len;
+		molecule->bonds[molecule->bond_no].z = bond->z;
+		//!
 		molecule->bond_no += 1;														  // increment after addition
 	}
 
@@ -346,10 +357,18 @@ void molappend_bond(molecule *molecule, bond *bond) // appends the bonds
 		molecule->bonds[0].a2 = bond->a2;
 		molecule->bonds[0].epairs = bond->epairs;
 		molecule->bond_ptrs[0] = &molecule->bonds[0]; //! CHECK THIS
-		molecule->bond_no += 1;
-
+		//! Updated for A2
+		molecule->bonds[0].atoms = bond->atoms;
 		molecule->bonds[0].x1 = bond->x1;
+		molecule->bonds[0].x2 = bond->x2;
 		molecule->bonds[0].y1 = bond->y1;
+		molecule->bonds[0].y2 = bond->y2;
+		molecule->bonds[0].dx = bond->dx;
+		molecule->bonds[0].dy = bond->dy;
+		molecule->bonds[0].len = bond->len;
+		molecule->bonds[0].z = bond->z;
+		//!
+		molecule->bond_no += 1;
 
 #ifdef DEBUG_ON
 		printf("Address pointed to by molecule->bond_ptrs[0] in header file : %p\n", (void *)molecule->bond_ptrs[0]); //! error checking
@@ -392,10 +411,10 @@ int compare_bond_ptr(const void *a, const void *b)
 
 	//* FIXME:
 	bond_a = *(bond **)(a); // de-reference a to get the bond pointed to by the pointer
-	double_a = 0;			//(bond_a->a1->z + bond_a->a2->z) / 2; // get the value pointed to by a (which is the z value)
+	double_a = bond_a->z;			//(bond_a->a1->z + bond_a->a2->z) / 2; // get the value pointed to by a (which is the z value)
 
 	bond_b = *(bond **)(b);
-	double_b = 0; //(bond_b->a1->z + bond_b->a2->z) / 2;
+	double_b = bond_b->z; //(bond_b->a1->z + bond_b->a2->z) / 2;
 
 #ifdef DEBUG_
 	printf("The value of a is: %lf \n", double_a);
@@ -584,16 +603,6 @@ void molfree(molecule *ptr)
 
 molecule *molcopy(molecule *src)
 {
-	// src is a molecule passed
-
-	// // atom struct members
-	// double x, y, z;
-	// char element[3];
-
-	// // bond struct members
-	// atom *a1, *a2;
-	// unsigned char epairs;
-
 	atom anAtom;		// an atom variable
 	bond aBond;			// a bond variable
 	molecule *moleCopy; // molecule variable
@@ -635,11 +644,17 @@ molecule *molcopy(molecule *src)
 		aBond.epairs = src->bonds[i].epairs;
 		aBond.a1 = src->bonds[i].a1;
 		aBond.a2 = src->bonds[i].a2;
+
 		//! Updated for A2
+		aBond.atoms = src->bonds[i].atoms;
 		aBond.x1 = src->bonds[i].x1;
 		aBond.x2 = src->bonds[i].x2;
 		aBond.y1 = src->bonds[i].y1;
 		aBond.y2 = src->bonds[i].y2;
+		aBond.dx = src->bonds[i].dx;
+		aBond.dy = src->bonds[i].dy;
+		aBond.len = src->bonds[i].len;
+		aBond.z = src->bonds[i].z;
 
 		molappend_bond(moleCopy, &aBond); // append all bonds
 	}
@@ -649,30 +664,19 @@ molecule *molcopy(molecule *src)
 //! Updated for A2
 void compute_coords(bond *bond)
 {
-
-#ifdef DEBUG_OFF
-	printf("\n==================================== [MOL.H] This is for compute_coords()-- BEFORE =======================================\n");
-	printf("The value of a1, a2 is: %d, %d\n", bond->a1, bond->a2);
-	printf("The value of x1, y1 is: %lf, %lf \n", bond->atoms[bond->a1].x, bond->atoms[bond->a1].y);
-	printf("The value of x2, y2 is: %lf, %lf \n", bond->atoms[bond->a2].x, bond->atoms[bond->a2].y);
-#endif
-
 	bond->x1 = bond->atoms[bond->a1].x;
 	bond->y1 = bond->atoms[bond->a1].y;
 	bond->x2 = bond->atoms[bond->a2].x;
 	bond->y2 = bond->atoms[bond->a2].y;
 	bond->z = (bond->atoms[bond->a1].z + bond->atoms[bond->a2].z) / 2;
-	bond->len = 0;
-	bond->dx = 0;
-	bond->dy = 0;
+	bond->len = sqrt((pow(bond->x2 - bond->x1, 2)) + (pow(bond->y2 - bond->y1, 2)));
+	bond->dx = (bond->x2 - bond->x1) / bond->len;
+	bond->dy = (bond->y2 - bond->y1) / bond->len;
 
-#ifdef DEBUG_OFF
+#ifdef DEBUG_
 	printf("\n==================================== [MOL.H] This is for compute_coords()-- AFTER =======================================\n");
 	printf("The value of a1, a2 is: %d, %d\n", bond->a1, bond->a2);
 	printf("The value of x1, y1 is: %lf, %lf \n", bond->atoms[bond->a1].x, bond->atoms[bond->a1].y);
 	printf("The value of x2, y2 is: %lf, %lf \n", bond->atoms[bond->a2].x, bond->atoms[bond->a2].y);
-	// printf("The value of x1, y1 is: %lf, %lf \n", bond->atoms[0].x, bond->atoms[0].y);
-	// printf("The value of x2, y2 is: %lf, %lf \n", bond->atoms[1].x, bond->atoms[1].y);
-	// printf("The value of x3, y3 is: %lf, %lf \n", bond->atoms[2].x, bond->atoms[2].y);
 #endif
 }
