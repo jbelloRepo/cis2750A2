@@ -188,14 +188,15 @@ class Molecule(molecule.molecule):
     # print(mol1)
 
 #caffeine-3D-structure-CT1001987571.sdf
-mol1 = Molecule()
-# create 3 atoms
-with open('caffeine-3D-structure-CT1001987571.sdf', 'r') as sdfile:
-    mol1.parse(sdfile)
-# print(mol1)
-mol1.sort()
-# print(mol1.sort())
-print(mol1.svg())
+if __name__=="__main__":
+    mol1 = Molecule()
+    # create 3 atoms
+    with open('caffeine-3D-structure-CT1001987571.sdf', 'r') as sdfile:
+        mol1.parse(sdfile)
+    # print(mol1)
+    mol1.sort()
+    # print(mol1.sort())
+    print(mol1.svg())
 
 # file=self.rfile
 # molecule =MolDisplay.Molecule()
