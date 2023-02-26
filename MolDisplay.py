@@ -188,7 +188,7 @@ class Molecule(molecule.molecule):
 
 mol1 = Molecule()
 # create 3 atoms
-with open('caffeine-3D-structure-CT1001987571.sdf', 'r') as sdfile:
+with open('CID_31260.sdf', 'r') as sdfile:
     mol1.parse(sdfile)
 
 print(mol1.svg())
