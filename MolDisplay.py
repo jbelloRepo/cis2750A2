@@ -80,6 +80,8 @@ class Molecule(molecule.molecule):
     def svg(self):
         atom_no = self.atom_no
         bond_no = self.bond_no
+        # self.atoms = self.sort()
+        # self.bonds = self.sort()
         appended_count = 0
         i = 0
         j = 0
@@ -99,7 +101,7 @@ class Molecule(molecule.molecule):
 
             if (anAtom.z < aBond.z):
                 svg_str += anAtom.svg()
-                print("==Appended Atom==")
+                # print(f"==Appended Atom== {anAtom.z}")
                 appended_count += 1
                 i += 1
                 if ((i == atom_no)):
@@ -107,14 +109,14 @@ class Molecule(molecule.molecule):
                         bond = self.get_bond(j)
                         aBond = Bond(bond)
                         svg_str += aBond.svg()
-                        print("==Appended Bond==")
+                        # print(f"==Appended Bond== {aBond.z}")
                         appended_count += 1
                         i += 1
-                        print(f"The value of i is {i}")
+                        # print(f"The value of i is {i}")
 
             else:
                 svg_str += aBond.svg()
-                print("==Appended Bond==")
+                # print(f"==Appended Bond== {aBond.z}")
                 appended_count += 1
                 j += 1
                 if ((j == bond_no)):
@@ -122,15 +124,15 @@ class Molecule(molecule.molecule):
                         atom = self.get_atom(i)
                         anAtom = Atom(atom)
                         svg_str += anAtom.svg()
-                        print("==Appended Atom==")
+                        # print(f"==Appended Atom== {anAtom.z}")
                         appended_count += 1
                         
                         i += 1
-                        print(f"The value of i is {j}")
+                        # print(f"The value of i is {j}")
 
             if ((i == atom_no) and (j == bond_no)):
-                print(f"The value of i,j is: {i,j}")
-                print(f"The appended number of items: {appended_count}")
+                # print(f"The value of i,j is: {i,j}")
+                # print(f"The appended number of items: {appended_count}")
                 False
                 break
 
@@ -159,9 +161,9 @@ class Molecule(molecule.molecule):
                     line[3:6].strip()), int(line[6:9].strip()))
                 self.append_bond(bondVar[0], bondVar[1], bondVar[2])
                 # print(bondVar)
-        print("\n=============== Class method: parse() ===============")
-        print(f"atom_no: {self.atom_no}  bond_no: {self.bond_no}")
-        print("=====================================================")
+        # print("\n=============== Class method: parse() ===============")
+        # print(f"atom_no: {self.atom_no}  bond_no: {self.bond_no}")
+        # print("=====================================================")
 
 
 # mol1 = Molecule()
@@ -185,10 +187,16 @@ class Molecule(molecule.molecule):
 
     # print(mol1)
 
-
+#caffeine-3D-structure-CT1001987571.sdf
 mol1 = Molecule()
 # create 3 atoms
-with open('CID_31260.sdf', 'r') as sdfile:
+with open('caffeine-3D-structure-CT1001987571.sdf', 'r') as sdfile:
     mol1.parse(sdfile)
-
+# print(mol1)
+mol1.sort()
+# print(mol1.sort())
 print(mol1.svg())
+
+# file=self.rfile
+# molecule =MolDisplay.Molecule()
+# molecule.parse(file)

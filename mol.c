@@ -6,8 +6,8 @@
 ******** Function Definition ********
 ************************************/
 
-int compare_atom_ptr(const void *a, const void *b);
-int compare_bond_ptr(const void *a, const void *b);
+int atom_comp(const void *a, const void *b);
+int bond_comp(const void *a, const void *b);
 
 /******************************************
 		Functions for the ATOM
@@ -383,7 +383,7 @@ void molappend_bond(molecule *molecule, bond *bond) // appends the bonds
 		Additional functions
 *******************************************/
 
-int compare_atom_ptr(const void *a, const void *b) // compare atom pointers
+int atom_comp(const void *a, const void *b) // compare atom pointers
 {
 	// pass in an array of type pointer to atom
 
@@ -401,10 +401,23 @@ int compare_atom_ptr(const void *a, const void *b) // compare atom pointers
 	printf("The value of b is: %lf \n", double_b);
 #endif
 
-	return ((int)(double_a - double_b));
+	if (double_a == double_b)
+	{
+		return 0;
+	}
+	else if (double_a > double_b)
+	{
+		return 1;
+	}
+	else
+	{
+		return -1;
+	}
+
+	// return (double_a - double_b);
 }
 
-int compare_bond_ptr(const void *a, const void *b)
+int bond_comp(const void *a, const void *b)
 {
 	double double_a, double_b;
 	bond *bond_a, *bond_b;
@@ -421,12 +434,24 @@ int compare_bond_ptr(const void *a, const void *b)
 	printf("The value of b is: %lf \n", double_b);
 #endif
 
-	return ((int)(double_a - double_b));
+	if (double_a == double_b)
+	{
+		return 0;
+	}
+	else if (double_a > double_b)
+	{
+		return 1;
+	}
+	else
+	{
+		return -1;
+	}
+	// return (double_a - double_b);
 }
 
 void molsort(molecule *molecule) // This function sorts an array of pointers (pointing to atoms in an array)
 {
-#ifdef DEBUG_ON
+#ifdef DEBUG_
 	printf("\n==================================== [MOL.C] This is for molsort() [atom_ptrs] ==============================\n");
 	printf("The number of atoms in the molecule is %d\n", molecule->atom_no);
 	printf("BEFORE atom_ptr is sorted:");
@@ -434,35 +459,35 @@ void molsort(molecule *molecule) // This function sorts an array of pointers (po
 	{
 		if (i == 0)
 		{
-			printf(" %p", (void *)molecule->atom_ptrs[i]);
+			printf(" %p:[%lf]", (void *)molecule->atom_ptrs[i], molecule->atom_ptrs[i]->z);
 		}
 		else
 		{
-			printf(" %p", (void *)molecule->atom_ptrs[i]);
+			printf(" %p:[%lf]", (void *)molecule->atom_ptrs[i], molecule->atom_ptrs[i]->z);
 		}
 	}
 	printf("\n");
 #endif
 
-	qsort(molecule->atom_ptrs, molecule->atom_no, sizeof(atom *), compare_atom_ptr); // sort the atom_ptrs
+	qsort(molecule->atom_ptrs, molecule->atom_no, sizeof(atom *), atom_comp); // sort the atom_ptrs
 
-#ifdef DEBUG_ON
+#ifdef DEBUG_
 	printf("AFTER  atom_ptr is sorted:");
 	for (int i = 0; i < molecule->atom_no; i++)
 	{
 		if (i == 0)
 		{
-			printf(" %p", (void *)molecule->atom_ptrs[i]);
+			printf(" %p:[%lf]", (void *)molecule->atom_ptrs[i], molecule->atom_ptrs[i]->z);
 		}
 		else
 		{
-			printf(" %p", (void *)molecule->atom_ptrs[i]);
+			printf(" %p:[%lf]", (void *)molecule->atom_ptrs[i], molecule->atom_ptrs[i]->z);
 		}
 	}
 	printf("\n");
 #endif
 
-#ifdef DEBUG_ON
+#ifdef DEBUG_
 	printf("\n==================================== [MOL.C] This is for molsort() [bond_ptrs] ==============================\n");
 	printf("The number of bonds in the molecule is %d\n", molecule->bond_no);
 	printf("BEFORE bond_ptr is sorted:");
@@ -470,32 +495,32 @@ void molsort(molecule *molecule) // This function sorts an array of pointers (po
 	{
 		if (i == 0)
 		{
-			printf(" %p", (void *)molecule->bond_ptrs[i]);
+			printf(" %p:[%lf]", (void *)molecule->bond_ptrs[i], molecule->bond_ptrs[i]->z);
 		}
 		else
 		{
-			printf(" %p", (void *)molecule->bond_ptrs[i]);
+			printf(" %p:[%lf]", (void *)molecule->bond_ptrs[i], molecule->bond_ptrs[i]->z);
 		}
 	}
 	printf("\n");
 #endif
 
-	qsort(molecule->bond_ptrs, molecule->bond_no, sizeof(bond *), compare_bond_ptr); // sort the bond_ptrs
+	qsort(molecule->bond_ptrs, molecule->bond_no, sizeof(bond *), bond_comp); // sort the bond_ptrs
 
-#ifdef DEBUG_ON
+#ifdef DEBUG_
 	printf("AFTER  bond_ptr is sorted:");
 	for (int i = 0; i < molecule->bond_no; i++)
 	{
 		if (i == 0)
 		{
-			printf(" %p", (void *)molecule->bond_ptrs[i]);
+			printf(" %p:[%lf]", (void *)molecule->bond_ptrs[i], molecule->bond_ptrs[i]->z);
 		}
 		else
 		{
-			printf(" %p", (void *)molecule->bond_ptrs[i]);
+			printf(" %p:[%lf]", (void *)molecule->bond_ptrs[i], molecule->bond_ptrs[i]->z);
 		}
 	}
-	printf("\n");
+	printf("\n====END==== \n");
 #endif
 }
 
@@ -673,7 +698,7 @@ void compute_coords(bond *bond)
 	bond->y1 = bond->atoms[bond->a1].y;
 	bond->x2 = bond->atoms[bond->a2].x;
 	bond->y2 = bond->atoms[bond->a2].y;
-	bond->z = (bond->atoms[bond->a1].z + bond->atoms[bond->a2].z) / 2;
+	bond->z = ((bond->atoms[bond->a1].z + bond->atoms[bond->a2].z)) / 2;
 	bond->len = sqrt((pow(bond->x2 - bond->x1, 2)) + (pow(bond->y2 - bond->y1, 2)));
 	bond->dx = (bond->x2 - bond->x1) / bond->len;
 	bond->dy = (bond->y2 - bond->y1) / bond->len;
