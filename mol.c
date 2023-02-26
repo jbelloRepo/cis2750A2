@@ -202,7 +202,7 @@ void bondset(bond *bond, unsigned short *a1, unsigned short *a2, atom **atoms, u
 	bond->epairs = *(epairs);
 	bond->atoms = *(atoms);
 
-#ifdef DEBUG_OFF
+#ifdef DEBUG_
 	printf("\n==================================== [MOL.C] This is for bondset() =======================================\n");
 	printf("The value of a1, a2 and eparis is:  %d, %d, %d\n", bond->a1, bond->a2, bond->epairs);
 	printf("The first atom in the atom array is:  %s\n", bond->atoms[0].element);
@@ -343,7 +343,7 @@ void molappend_bond(molecule *molecule, bond *bond) // appends the bonds
 		molecule->bonds[molecule->bond_no].len = bond->len;
 		molecule->bonds[molecule->bond_no].z = bond->z;
 		//!
-		molecule->bond_no += 1;														  // increment after addition
+		molecule->bond_no += 1; // increment after addition
 	}
 
 	if ((molecule->bond_no == 0) && (molecule->bond_max != 0)) //* check if the molecule is initially empty (executes for first element only)
@@ -409,9 +409,9 @@ int compare_bond_ptr(const void *a, const void *b)
 	double double_a, double_b;
 	bond *bond_a, *bond_b;
 
-	//* FIXME:
+	//! Updated for A2
 	bond_a = *(bond **)(a); // de-reference a to get the bond pointed to by the pointer
-	double_a = bond_a->z;			//(bond_a->a1->z + bond_a->a2->z) / 2; // get the value pointed to by a (which is the z value)
+	double_a = bond_a->z;	//(bond_a->a1->z + bond_a->a2->z) / 2; // get the value pointed to by a (which is the z value)
 
 	bond_b = *(bond **)(b);
 	double_b = bond_b->z; //(bond_b->a1->z + bond_b->a2->z) / 2;
@@ -581,6 +581,11 @@ void mol_xform(molecule *molecule, xform_matrix matrix)
 		molecule->atoms[i].x = (matrix[0][0] * x) + (matrix[0][1] * y) + (matrix[0][2] * z);
 		molecule->atoms[i].y = (matrix[1][0] * x) + (matrix[1][1] * y) + (matrix[1][2] * z);
 		molecule->atoms[i].z = (matrix[2][0] * x) + (matrix[2][1] * y) + (matrix[2][2] * z);
+	}
+
+	for (int i = 0; i < molecule->bond_no; i++)
+	{
+		compute_coords(&(molecule->bonds[i]));
 	}
 
 #ifdef DEBUG_ON
