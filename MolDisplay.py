@@ -1,11 +1,11 @@
-# import molecule
-from molecule import molecule, atom, bond
+import molecule
+# from molecule import molecule, atom, bond
 import math
 
 # Define constants
 radius = {'H': 25, 'C': 40, 'O': 40, 'N': 40}
 element_name = {'H': 'grey', 'C': 'black', 'O': 'red', 'N': 'blue'}
-header = """<svg version="1.1" width="1000" height="1000"xmlns="http://www.w3.org/2000/svg">"""
+header = """<svg version="1.1" width="1000" height="1000" xmlns="http://www.w3.org/2000/svg">"""
 footer = """</svg>"""
 offsetx = 500
 offsety = 500
@@ -56,55 +56,90 @@ class Bond:
         return f'  <polygon points="{x3:.2f},{y3:.2f} {x4:.2f},{y4:.2f} {x6:.2f},{y6:.2f} {x5:.2f},{y5:.2f}" fill="green"/>\n'
 
 
-class Molecule(molecule):
-    def __init__(self, molecule):
-        self.molecule = molecule
-        super().__init__()
-        # self.name = name
-
-    def __len__(self):
-        return len(self.list)
-
-    # def get_name(self):
-    #     return self.name
-
-    def __str__(self):
-        return f"atom max: {self.atom_max} atom no: {self.atom_no} bond max: {self.bond_max} bond no: {self.bond_no}"
-
-    # def __str__(self):  # Define the string for debugging
-    #     res = "Atoms:\n"
-    #     for atom in self.atoms:
-    #         res += str(atom) + "\n"
-    #     res += "\nBonds:\n"
-    #     for bond in self.bonds:
-    #         res += str(bond) + "\n"
-    #     return res
+class Molecule(molecule.molecule):
+    def __str__(self):  # Define the string for debugging
+        out = "Atoms:\n"
+        for i in range(self.atom_no):
+            out += str(self.get_atom(i).element)
+        out += "\nBonds:\n"
+        for i in range(self.bond_no):
+            out += "a1:"+str(self.get_bond(i).a1) + " "
+            out += "a2:"+str(self.get_bond(i).a2) + " "
+            out += "z:"+str(self.get_bond(i).z) + " "
+            out += "eparis:"+str(self.get_bond(i).epairs) + " "
+            out += "x1:"+str(self.get_bond(i).x1) + " "
+            out += "y1:"+str(self.get_bond(i).y1) + " "
+            out += "x2:"+str(self.get_bond(i).x2) + " "
+            out += "y2:"+str(self.get_bond(i).y2) + " "
+            out += "len:"+str(self.get_bond(i).len) + " "
+            out += "dx:"+str(self.get_bond(i).dx) + " "
+            out += "dy:"+str(self.get_bond(i).dy) + " " + "\n"
+        out += f"atom max: {self.atom_max} atom no: {self.atom_no} bond max: {self.bond_max} bond no: {self.bond_no}"
+        return out
 
     def svg(self):
-        atoms = self.atoms.copy()
-        bonds = self.bonds.copy()
-        atoms.sort(key=lambda x: x.z)
-        bonds.sort(key=lambda x: min(x.a1.z, x.a2.z))
+        atom_no = self.atom_no
+        bond_no = self.bond_no
+        appended_count = 0
+        i = 0
+        j = 0
         svg_str = header
-        while atoms or bonds:
-            if not atoms:
-                svg_str += bonds.pop(0).svg()
-            elif not bonds:
-                svg_str += atoms.pop(0).svg()
-            elif atoms[0].z < min(bonds[0].a1.z, bonds[0].a2.z):
-                svg_str += atoms.pop(0).svg()
-            else:
-                svg_str += bonds.pop(0).svg()
-            svg_str += footer
-            return svg_str
 
-    @classmethod
+        atom = self.get_atom(i)
+        anAtom = Atom(atom)
+        bond = self.get_bond(i)
+        aBond = Bond(bond)
+        # for i in range(atom_no + bond_no):
+        while True:
+            atom = self.get_atom(i)
+            anAtom = Atom(atom)
+
+            bond = self.get_bond(j)
+            aBond = Bond(bond)
+
+            if (anAtom.z < aBond.z):
+                svg_str += anAtom.svg()
+                print("==Appended Atom==")
+                appended_count += 1
+                i += 1
+                if ((i == atom_no)):
+                    while (bond_no > j):
+                        bond = self.get_bond(j)
+                        aBond = Bond(bond)
+                        svg_str += aBond.svg()
+                        print("==Appended Bond==")
+                        appended_count += 1
+                        i += 1
+                        print(f"The value of i is {i}")
+
+            else:
+                svg_str += aBond.svg()
+                print("==Appended Bond==")
+                appended_count += 1
+                j += 1
+                if ((j == bond_no)):
+                    while (atom_no > i):
+                        atom = self.get_atom(i)
+                        anAtom = Atom(atom)
+                        svg_str += anAtom.svg()
+                        print("==Appended Atom==")
+                        appended_count += 1
+                        
+                        i += 1
+                        print(f"The value of i is {j}")
+
+            if ((i == atom_no) and (j == bond_no)):
+                print(f"The value of i,j is: {i,j}")
+                print(f"The appended number of items: {appended_count}")
+                False
+                break
+
+        svg_str += footer       
+        return svg_str
+
+    # @classmethod
+
     def parse(self, fileobj):
-        self = molecule()
-        # self.append_atom("O", 2.5369, -0.1550, 0.0000)
-        # atom = self.get_atom(1)
-        # newAtom = Atom(atom)
-        print(self.atom_no)
         atomCount, bondCount = None, None  # declare as object to make Iterable
         lineCount = 0
         for line in fileobj:
@@ -120,75 +155,40 @@ class Molecule(molecule):
                 z = float(z)
                 self.append_atom(element, x, y, z)
             elif bondCount is not None and self.bond_no < bondCount and (lineCount > (4+atomCount)) and (lineCount < (4+atomCount+1+bondCount)):
-                bondVar = (int(line[:3].strip()), int(line[3:6].strip()), int(line[6:9].strip()))
+                bondVar = (int(line[:3].strip()), int(
+                    line[3:6].strip()), int(line[6:9].strip()))
                 self.append_bond(bondVar[0], bondVar[1], bondVar[2])
                 # print(bondVar)
-        
-        print(self.atom_no)
-        print(self.bond_no)
-                
-                # break
-
-        # for line in fileobj:
-        #     print(line.rstrip('\n'))
-
-        # mol = Molecule(molecule)
-        # atom_count = int(fileobj.readline().strip())
-        # bond_count = int(fileobj.readline().strip())
-        # fileobj.readline()  # ignore next line
-
-        # # parse atoms
-        # for i in range(atom_count):
-        #     line = fileobj.readline()
-        #     x, y, z, sym = line[:10], line[10:20], line[20:30], line[31:33]
-        #     atom = Atom(float(x), float(y), float(z), sym)
-        #     mol.append_atom(atom)
-
-        # # parse bonds
-        # for i in range(bond_count):
-        #     line = fileobj.readline()
-        #     a1_idx, a2_idx, bond_type = line[:3], line[3:6], line[6:9]
-        #     a1 = mol.atoms[int(a1_idx) - 1]
-        #     a2 = mol.atoms[int(a2_idx) - 1]
-        #     bond = Bond(a1, a2, int(bond_type))
-        #     mol.append_bond(bond)
-
-        # return mol
+        print("\n=============== Class method: parse() ===============")
+        print(f"atom_no: {self.atom_no}  bond_no: {self.bond_no}")
+        print("=====================================================")
 
 
-# mol = molecule()  # create a new molecule object
-# mol.append_atom("O", 2.5369, -0.1550, 0.0000)
-# mol.append_atom("H", 3.0739, 0.1550, 0.0000)
-# mol.append_atom("H", 2.0000, 0.1550, 0.0000)
-
-# mol.append_bond(1, 2, 1)
-# mol.append_bond(1, 3, 1)
-
-# atom = mol.get_atom(1)
-# bond = mol.get_bond(1)
-# z = atom.z
+# mol1 = Molecule()
+# with open('water-3D-structure-CT1000292221.sdf', 'r') as sdfile:
+#     mol1.parse(sdfile)
+# with open('water-3D-structure-CT1000292221.svg', 'w') as f:
+#     f.write(mol1.svg())
 
 
-# newAtom = Atom(atom)
-# newBond = Bond(bond)
-# print(newAtom.svg())
-# print(newBond.svg())
-# # print()
+    
+# print(mol1)
 
-# from molecule import Molecule, Atom, Bond
+# for i in range(3):
+#     atom = mol1.get_atom(i)
+#     # print(atom.element, atom.x, atom.y, atom.z)
 
-# Create a new molecule
-mol1 = Molecule(molecule)
-# mol1.append_atom("O", 2.5369, -0.1550, 0.0000)
-# mol1.append_atom("H", 3.0739, 0.1550, 0.0000)
-# mol1.append_atom("H", 2.0000, 0.1550, 0.0000)
+# for i in range(2):
+#     bond = mol1.get_bond(i)
+#     print(bond.__str__())
+    # print(bond.a1, bond.a2, bond.epairs, bond.x1, bond.y1, bond.x2, bond.y2, bond.len, bond.dx, bond.dy)
 
-# mol1.append_bond(1, 2, 1)
-# mol1.append_bond(1, 3, 1)
+    # print(mol1)
 
+
+mol1 = Molecule()
+# create 3 atoms
 with open('caffeine-3D-structure-CT1001987571.sdf', 'r') as sdfile:
     mol1.parse(sdfile)
-    print(mol1)
 
-# print molecule information
-
+print(mol1.svg())
