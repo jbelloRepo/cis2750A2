@@ -32,12 +32,6 @@ typedef struct bond
     double x1, x2, y1, y2, z, len, dx, dy;
 } bond;
 
-// typedef struct bond // bond ADT
-// {
-//     atom *a1, *a2;
-//     unsigned char epairs;
-// } bond;
-
 typedef struct molecule
 {
     unsigned short atom_max, atom_no;
@@ -53,9 +47,9 @@ typedef double xform_matrix[3][3];
 void atomset(atom *atom, char element[3], double *x, double *y, double *z); // setter for atom
 void atomget(atom *atom, char element[3], double *x, double *y, double *z); // getter for atom
 
-// Functions for the bond
-void bondset(bond *bond, atom *a1, atom *a2, unsigned char epairs); // setter for bond
-void bondget(bond *bond, atom **a1, atom **a2, unsigned char *epairs);
+//! UPDATED FOR A2: Functions for the bond
+void bondset(bond *bond, unsigned short *a1, unsigned short *a2, atom **atoms, unsigned char *epairs);
+void bondget(bond *bond, unsigned short *a1, unsigned short *a2, atom **atoms, unsigned char *epairs);
 
 // Functions for the molecule
 molecule *molmalloc(unsigned short atom_max, unsigned short bond_max); // dym. allocate space for the molecule -> return pointer of type malloc
@@ -73,6 +67,6 @@ void mol_xform(molecule *molecule, xform_matrix matrix);
 void molsort(molecule *molecule);
 
 //! Updated for A2
-void compute_coords( bond *bond );
+void compute_coords(bond *bond);
 
 #endif
