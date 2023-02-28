@@ -1,5 +1,4 @@
 import molecule
-# from molecule import molecule, atom, bond
 import math
 
 # Define constants
@@ -80,8 +79,6 @@ class Molecule(molecule.molecule):
     def svg(self):
         atom_no = self.atom_no
         bond_no = self.bond_no
-        # self.atoms = self.sort()
-        # self.bonds = self.sort()
         appended_count = 0
         i = 0
         j = 0
@@ -126,7 +123,7 @@ class Molecule(molecule.molecule):
                         svg_str += anAtom.svg()
                         # print(f"==Appended Atom== {anAtom.z}")
                         appended_count += 1
-                        
+
                         i += 1
                         # print(f"The value of i is {j}")
 
@@ -136,7 +133,7 @@ class Molecule(molecule.molecule):
                 False
                 break
 
-        svg_str += footer       
+        svg_str += footer
         return svg_str
 
     # @classmethod
@@ -173,7 +170,6 @@ class Molecule(molecule.molecule):
 #     f.write(mol1.svg())
 
 
-    
 # print(mol1)
 
 # for i in range(3):
@@ -187,8 +183,8 @@ class Molecule(molecule.molecule):
 
     # print(mol1)
 
-#caffeine-3D-structure-CT1001987571.sdf
-if __name__=="__main__":
+# caffeine-3D-structure-CT1001987571.sdf
+if __name__ == "__main__":
     mol1 = Molecule()
     # create 3 atoms
     with open('caffeine-3D-structure-CT1001987571.sdf', 'r') as sdfile:
@@ -197,7 +193,3 @@ if __name__=="__main__":
     mol1.sort()
     # print(mol1.sort())
     print(mol1.svg())
-
-# file=self.rfile
-# molecule =MolDisplay.Molecule()
-# molecule.parse(file)

@@ -7,7 +7,7 @@ LIBS=-lm # note: the l means library, m means math
 all: myprog 
 
 clean:  
-	rm -f *.o *.so myprog molecule_wrap.c molecule.py
+	rm -f *.o *.so myprog 
 
 # Object file for mol.c	
 mylib.o:  mol.c mol.h
