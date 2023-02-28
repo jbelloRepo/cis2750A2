@@ -163,27 +163,6 @@ class Molecule(molecule.molecule):
         # print("=====================================================")
 
 
-# mol1 = Molecule()
-# with open('water-3D-structure-CT1000292221.sdf', 'r') as sdfile:
-#     mol1.parse(sdfile)
-# with open('water-3D-structure-CT1000292221.svg', 'w') as f:
-#     f.write(mol1.svg())
-
-
-# print(mol1)
-
-# for i in range(3):
-#     atom = mol1.get_atom(i)
-#     # print(atom.element, atom.x, atom.y, atom.z)
-
-# for i in range(2):
-#     bond = mol1.get_bond(i)
-#     print(bond.__str__())
-    # print(bond.a1, bond.a2, bond.epairs, bond.x1, bond.y1, bond.x2, bond.y2, bond.len, bond.dx, bond.dy)
-
-    # print(mol1)
-
-# caffeine-3D-structure-CT1001987571.sdf
 if __name__ == "__main__":
     mol1 = Molecule()
     # create 3 atoms
